@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InsideScoop — SRS</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #141414;
+    --card: #1a1a1a;
+    --border: #2a2a2a;
+    --accent: #e8b84b;
+    --accent2: #c9415a;
+    --text: #f0ebe1;
+    --muted: #7a7570;
+    --must: #e8b84b;
+    --should: #5b9bd5;
+    --could: #7ec885;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.7; overflow-x: hidden; }
+
+  .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden; padding: 4rem 2rem; text-align: center; }
+  .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(232,184,75,0.08) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 80% 80%, rgba(201,65,90,0.06) 0%, transparent 50%); pointer-events: none; }
+  .hero-label { font-family: 'DM Mono', monospace; font-size: 0.7rem; letter-spacing: 0.25em; color: var(--accent); text-transform: uppercase; margin-bottom: 1.5rem; opacity: 0; animation: fadeUp 0.8s ease forwards 0.2s; }
+  .hero-title { font-family: 'Playfair Display', serif; font-size: clamp(4rem, 12vw, 9rem); font-weight: 900; line-height: 0.9; letter-spacing: -0.02em; margin-bottom: 1rem; opacity: 0; animation: fadeUp 0.8s ease forwards 0.4s; }
+  .hero-title span { color: var(--accent); display: block; }
+  .hero-subtitle { font-size: 1.05rem; color: var(--muted); max-width: 480px; margin: 1.5rem auto 3rem; opacity: 0; animation: fadeUp 0.8s ease forwards 0.6s; }
+  .hero-meta { display: flex; gap: 2.5rem; justify-content: center; flex-wrap: wrap; opacity: 0; animation: fadeUp 0.8s ease forwards 0.8s; }
+  .meta-item { text-align: center; }
+  .meta-label { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; display: block; margin-bottom: 0.25rem; }
+  .meta-value { font-size: 0.95rem; color: var(--text); }
+  .scroll-hint { position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; opacity: 0; animation: fadeUp 0.8s ease forwards 1.2s; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+  .scroll-hint::after { content: ''; width: 1px; height: 40px; background: linear-gradient(to bottom, var(--muted), transparent); animation: scrollLine 1.5s ease-in-out infinite; }
+
+  .container { max-width: 860px; margin: 0 auto; padding: 0 2rem; }
+  .section { padding: 5rem 0; border-top: 1px solid var(--border); }
+  .section-header { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 3rem; }
+  .section-num { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--accent); letter-spacing: 0.1em; flex-shrink: 0; }
+  .section-title { font-family: 'Playfair Display', serif; font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 700; letter-spacing: -0.01em; }
+
+  .intro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); }
+  .intro-cell { background: var(--card); padding: 1.8rem; }
+  .intro-cell:first-child { grid-column: 1 / -1; }
+  .cell-label { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase; margin-bottom: 0.6rem; }
+  .cell-text { font-size: 0.95rem; color: var(--text); line-height: 1.6; }
+
+  .actors { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; }
+  .actor-card { background: var(--card); border: 1px solid var(--border); padding: 1.5rem; position: relative; overflow: hidden; }
+  .actor-card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--accent); }
+  .actor-name { font-family: 'DM Mono', monospace; font-size: 0.75rem; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 0.5rem; text-transform: uppercase; }
+  .actor-desc { font-size: 0.9rem; color: var(--muted); }
+
+  .deps { background: var(--card); border: 1px solid var(--border); padding: 1.5rem 2rem; }
+  .deps-title { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 1rem; }
+  .deps-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .dep-tag { background: rgba(232,184,75,0.08); border: 1px solid rgba(232,184,75,0.2); color: var(--accent); font-family: 'DM Mono', monospace; font-size: 0.72rem; padding: 0.3rem 0.8rem; letter-spacing: 0.05em; }
+
+  .fr-list { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--border); }
+  .fr-item { display: flex; align-items: flex-start; gap: 1.2rem; padding: 1.1rem 1.5rem; border-bottom: 1px solid var(--border); transition: background 0.2s; }
+  .fr-item:last-child { border-bottom: none; }
+  .fr-item:hover { background: rgba(255,255,255,0.02); }
+  .fr-code { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); flex-shrink: 0; width: 55px; margin-top: 0.1rem; }
+  .fr-badge { font-family: 'DM Mono', monospace; font-size: 0.62rem; padding: 0.15rem 0.5rem; flex-shrink: 0; margin-top: 0.15rem; letter-spacing: 0.05em; }
+  .badge-must { background: rgba(232,184,75,0.12); color: var(--must); border: 1px solid rgba(232,184,75,0.3); }
+  .badge-should { background: rgba(91,155,213,0.12); color: var(--should); border: 1px solid rgba(91,155,213,0.3); }
+  .badge-could { background: rgba(126,200,133,0.12); color: var(--could); border: 1px solid rgba(126,200,133,0.3); }
+  .fr-text { font-size: 0.9rem; color: var(--text); line-height: 1.5; }
+
+  .nfr-category { margin-bottom: 2rem; }
+  .nfr-cat-title { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase; margin-bottom: 0.8rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+  .nfr-list { display: flex; flex-direction: column; gap: 0.5rem; }
+  .nfr-item { display: flex; gap: 1rem; align-items: flex-start; padding: 0.8rem 1.2rem; background: var(--card); border-left: 2px solid var(--border); }
+  .nfr-code { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--muted); flex-shrink: 0; width: 80px; margin-top: 0.1rem; }
+  .nfr-text { font-size: 0.9rem; color: var(--text); }
+
+  .constraint-list { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); }
+  .constraint-item { background: var(--card); padding: 1.2rem 1.5rem; display: flex; gap: 1rem; align-items: flex-start; }
+  .c-code { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--accent2); flex-shrink: 0; margin-top: 0.1rem; }
+  .c-text { font-size: 0.88rem; color: var(--text); }
+
+  .glossary-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); }
+  .glossary-item { background: var(--card); display: grid; grid-template-columns: 130px 1fr; gap: 1.5rem; padding: 1rem 1.5rem; align-items: start; }
+  .g-term { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 0.05em; }
+  .g-def { font-size: 0.88rem; color: var(--muted); }
+
+  .matrix-list { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--border); }
+  .matrix-item { display: grid; grid-template-columns: 90px 120px 1fr; gap: 1rem; padding: 0.9rem 1.5rem; border-bottom: 1px solid var(--border); align-items: start; font-size: 0.85rem; transition: background 0.2s; }
+  .matrix-item:last-child { border-bottom: none; }
+  .matrix-item:hover { background: rgba(255,255,255,0.02); }
+  .matrix-item:first-child { background: var(--surface); font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; }
+  .m-req { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--accent); }
+  .m-src { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--muted); }
+  .m-test { color: var(--text); }
+
+  footer { border-top: 1px solid var(--border); padding: 3rem 0; text-align: center; }
+  .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--accent); margin-bottom: 0.5rem; }
+  .footer-meta { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes scrollLine { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+  @media (max-width: 640px) {
+    .intro-grid, .actors, .constraint-list { grid-template-columns: 1fr; }
+    .intro-cell:first-child { grid-column: 1; }
+    .matrix-item { grid-template-columns: 1fr; gap: 0.3rem; }
+    .matrix-item:first-child { display: none; }
+    .glossary-item { grid-template-columns: 1fr; gap: 0.3rem; }
+  }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <p class="hero-label">Software Requirements Specification · v0.1</p>
+  <h1 class="hero-title">Inside<span>Scoop</span></h1>
+  <p class="hero-subtitle">Сервіс для підбору ресторанів з інтегрованим ШІ-помічником</p>
+  <div class="hero-meta">
+    <div class="meta-item"><span class="meta-label">Розробник</span><span class="meta-value">Скиба Тимур Володимирович</span></div>
+    <div class="meta-item"><span class="meta-label">Замовник</span><span class="meta-value">The Inside Scoop</span></div>
+    <div class="meta-item"><span class="meta-label">Версія</span><span class="meta-value">v0.1</span></div>
+    <div class="meta-item"><span class="meta-label">Дата</span><span class="meta-value">18.05.2026</span></div>
+  </div>
+  <div class="scroll-hint">scroll</div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-header"><span class="section-num">01</span><h2 class="section-title">Вступ</h2></div>
+    <div class="intro-grid">
+      <div class="intro-cell">
+        <p class="cell-label">Опис продукту</p>
+        <p class="cell-text">InsideScoop — веб-сервіс для швидкого пошуку та перегляду ШІ-огляду закладів харчування. Замість самостійного читання сотень відгуків, користувач отримує концентрований нейро-звіт від ШІ на основі агрегованих даних.</p>
+      </div>
+      <div class="intro-cell">
+        <p class="cell-label">Замовник</p>
+        <p class="cell-text">Стартап The Inside Scoop</p>
+      </div>
+      <div class="intro-cell">
+        <p class="cell-label">Цільова аудиторія</p>
+        <p class="cell-text">Туристи та місцеві мешканці у пошуку нових закладів. Вік 18+, платоспроможні люди.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-header"><span class="section-num">02</span><h2 class="section-title">Загальний опис</h2></div>
+    <div class="actors">
+      <div class="actor-card">
+        <p class="actor-name">Гість</p>
+        <p class="actor-desc">Не зареєстрований користувач. Пошук закладів, обмежений ліміт запитів до ШІ.</p>
+      </div>
+      <div class="actor-card">
+        <p class="actor-name">Зареєстрований</p>
+        <p class="actor-desc">Пошук закладів, розширений ліміт запитів до ШІ, збереження історії.</p>
+      </div>
+    </div>
+    <div class="deps">
+      <p class="deps-title">Зовнішні залежності</p>
+      <div class="deps-list">
+        <span class="dep-tag">DeepSeek API</span>
+        <span class="dep-tag">Google Maps</span>
+        <span class="dep-tag">Yelp</span>
+        <span class="dep-tag">PostgreSQL</span>
+        <span class="dep-tag">SMTP-сервер</span>
+        <span class="dep-tag">Amazon Cloud</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-header"><span class="section-num">03</span><h2 class="section-title">Функціональні вимоги</h2></div>
+    <div class="fr-list">
+      <div class="fr-item"><span class="fr-code">FR-01</span><span class="fr-badge badge-must">Must</span><span class="fr-text">Користувач може шукати ресторани за введеним містом.</span></div>
+      <div class="fr-item"><span class="fr-code">FR-02</span><span class="fr-badge badge-must">Must</span><span class="fr-text">Результати пошуку відображаються списком із можливістю сортування.</span></div>
+      <div class="fr-item"><span class="fr-code">FR-03</span><span class="fr-badge badge-must">Must</span><span class="fr-text">Для кожного закладу генерується нейро-звіт на основі опису та відгуків.</span></div>
+      <div class="fr-item"><span class="fr-code">FR-04</span><span class="fr-badge badge-must">Must</span><span class="fr-text">Контактні дані закладу доступні на сторінці перегляду.</span></div>
+      <div class="fr-item"><span class="fr-code">FR-05</span><span class="fr-badge badge-must">Must</span><span class="fr-text">Користувач може задавати уточнюючі запитання до ШІ-помічника про конкретний заклад.</span></div>
+      <div class="fr-item"><span class="fr-code">FR-06</span><span class="fr-badge badge-must">Must</span><span class="fr-text">Реєстрація та авторизація виконуються через email.</span></div>
+      <div class="fr-item"><span class="fr-code">FR-07</span><span class="fr-badge badge-must">Must</span><span class="fr-text">Зареєстрований користувач отримує більший ліміт запитів до ШІ, ніж незареєстрований.</span></div>
+      <div class="fr-item"><span class="fr-code">FR-08</span><span class="fr-badge badge-must">Must</span><span class="fr-text">Користувач може залишити оцінку закладу.</span></div>
+      <div class="fr-item"><span class="fr-code">FR-09</span><span class="fr-badge badge-should">Should</span><span class="fr-text">Відгуки про заклад агрегуються з відкритих джерел і відображаються на сторінці закладу.</span></div>
+      <div class="fr-item"><span class="fr-code">FR-10</span><span class="fr-badge badge-could">Could</span><span class="fr-text">Після реєстрації користувач отримує підтвердження на email.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-header"><span class="section-num">04</span><h2 class="section-title">Нефункціональні вимоги</h2></div>
+    <div class="nfr-category">
+      <p class="nfr-cat-title">Продуктивність</p>
+      <div class="nfr-list">
+        <div class="nfr-item"><span class="nfr-code">NFR-P-01</span><span class="nfr-text">Час відповіді пошуку ≤ 2 сек при 2000 одночасних користувачів.</span></div>
+        <div class="nfr-item"><span class="nfr-code">NFR-P-02</span><span class="nfr-text">Нейро-звіт генерується за ≤ 20 сек.</span></div>
+      </div>
+    </div>
+    <div class="nfr-category">
+      <p class="nfr-cat-title">Безпека</p>
+      <div class="nfr-list">
+        <div class="nfr-item"><span class="nfr-code">NFR-S-01</span><span class="nfr-text">Паролі зберігаються у вигляді bcrypt-хешів.</span></div>
+        <div class="nfr-item"><span class="nfr-code">NFR-S-02</span><span class="nfr-text">HTTPS обов'язковий (TLS 1.2+), всі дані шифруються.</span></div>
+        <div class="nfr-item"><span class="nfr-code">NFR-S-03</span><span class="nfr-text">Лімітер запитів з одного IP для захисту від brute-force.</span></div>
+      </div>
+    </div>
+    <div class="nfr-category">
+      <p class="nfr-cat-title">Зручність використання</p>
+      <div class="nfr-list">
+        <div class="nfr-item"><span class="nfr-code">NFR-U-01</span><span class="nfr-text">Інтерфейс адаптивний для екранів від мобільного до десктопу.</span></div>
+        <div class="nfr-item"><span class="nfr-code">NFR-U-02</span><span class="nfr-text">Підтримка Windows, Linux, macOS, Android, iOS у всіх популярних браузерах.</span></div>
+      </div>
+    </div>
+    <div class="nfr-category">
+      <p class="nfr-cat-title">Надійність</p>
+      <div class="nfr-list">
+        <div class="nfr-item"><span class="nfr-code">NFR-R-01</span><span class="nfr-text">Uptime ≥ 99%, пріоритет у критичні години 12:00–14:00 та 18:00–21:00.</span></div>
+        <div class="nfr-item"><span class="nfr-code">NFR-R-02</span><span class="nfr-text">Автоматичний backup БД раз на 24 год.</span></div>
+      </div>
+    </div>
+    <div class="nfr-category">
+      <p class="nfr-cat-title">Масштабованість</p>
+      <div class="nfr-list">
+        <div class="nfr-item"><span class="nfr-code">NFR-SC-01</span><span class="nfr-text">Архітектура на Amazon Cloud дозволяє горизонтальне масштабування при зростанні навантаження.</span></div>
+        <div class="nfr-item"><span class="nfr-code">NFR-SC-02</span><span class="nfr-text">Система витримує зростання до 10 000 користувачів без переписування архітектури.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-header"><span class="section-num">05</span><h2 class="section-title">Обмеження</h2></div>
+    <div class="constraint-list">
+      <div class="constraint-item"><span class="c-code">C-01</span><span class="c-text">Back-end реалізується на Python (FastAPI)</span></div>
+      <div class="constraint-item"><span class="c-code">C-02</span><span class="c-text">Розгортання — Docker-контейнери на Amazon Cloud VPS</span></div>
+      <div class="constraint-item"><span class="c-code">C-03</span><span class="c-text">Бюджет: до $800/рік на інфраструктуру</span></div>
+      <div class="constraint-item"><span class="c-code">C-04</span><span class="c-text">Захист персональних даних: GDPR та CCPA</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-header"><span class="section-num">06</span><h2 class="section-title">Глосарій</h2></div>
+    <div class="glossary-list">
+      <div class="glossary-item"><span class="g-term">MVP</span><span class="g-def">Minimum Viable Product — мінімальна версія продукту з базовою функціональністю для першого запуску.</span></div>
+      <div class="glossary-item"><span class="g-term">GDPR</span><span class="g-def">Регуляторний акт ЄС щодо захисту персональних даних користувачів.</span></div>
+      <div class="glossary-item"><span class="g-term">CCPA</span><span class="g-def">Закон про захист персональних даних штату Каліфорнія.</span></div>
+      <div class="glossary-item"><span class="g-term">VPS</span><span class="g-def">Virtual Private Server — віртуальний приватний сервер для розгортання застосунку.</span></div>
+      <div class="glossary-item"><span class="g-term">Нейро-звіт</span><span class="g-def">Згенерований ШІ короткий аналіз закладу на основі агрегованих відгуків та опису.</span></div>
+      <div class="glossary-item"><span class="g-term">Uptime</span><span class="g-def">Відсоток часу, протягом якого система доступна та працює справно.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-header"><span class="section-num">07</span><h2 class="section-title">Матриця відстежуваності</h2></div>
+    <div class="matrix-list">
+      <div class="matrix-item"><span>Вимога</span><span>Джерело</span><span>Тест-критерій</span></div>
+      <div class="matrix-item"><span class="m-req">FR-01</span><span class="m-src">2.1, 5.1</span><span class="m-test">Ввести місто → список закладів за ≤2 сек</span></div>
+      <div class="matrix-item"><span class="m-req">FR-02</span><span class="m-src">2.1, 2.2</span><span class="m-test">Сортування списку змінює порядок коректно</span></div>
+      <div class="matrix-item"><span class="m-req">FR-03</span><span class="m-src">1.1, 2.2</span><span class="m-test">Нейро-звіт згенеровано за ≤20 сек</span></div>
+      <div class="matrix-item"><span class="m-req">FR-04</span><span class="m-src">2.4</span><span class="m-test">На сторінці закладу є адреса, телефон, сайт</span></div>
+      <div class="matrix-item"><span class="m-req">FR-05</span><span class="m-src">2.1, 2.4</span><span class="m-test">Запитання до ШІ → отримано відповідь</span></div>
+      <div class="matrix-item"><span class="m-req">FR-06</span><span class="m-src">2.2, 2.3</span><span class="m-test">Реєстрація через email → підтвердження надійшло</span></div>
+      <div class="matrix-item"><span class="m-req">FR-07</span><span class="m-src">2.3</span><span class="m-test">Незареєстрований має менший ліміт запитів до ШІ</span></div>
+      <div class="matrix-item"><span class="m-req">FR-08</span><span class="m-src">2.4</span><span class="m-test">Оцінка закладу збережена в БД</span></div>
+      <div class="matrix-item"><span class="m-req">FR-09</span><span class="m-src">2.5, 4.4</span><span class="m-test">Відгуки з Google Maps / Yelp відображаються</span></div>
+      <div class="matrix-item"><span class="m-req">FR-10</span><span class="m-src">4.4</span><span class="m-test">Після реєстрації email з підтвердженням надійшов</span></div>
+      <div class="matrix-item"><span class="m-req">NFR-P-01</span><span class="m-src">3.1, 3.2</span><span class="m-test">JMeter: 2000 users, пошук ≤2 сек</span></div>
+      <div class="matrix-item"><span class="m-req">NFR-S-01</span><span class="m-src">3.3</span><span class="m-test">Brute-force з одного IP блокується лімітером</span></div>
+      <div class="matrix-item"><span class="m-req">NFR-A-01</span><span class="m-src">3.5</span><span class="m-test">Моніторинг: uptime ≥99%, без збоїв у пікові години</span></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p class="footer-logo">InsideScoop</p>
+    <p class="footer-meta">SRS v0.1 · 18.05.2026 · Розробник Скиба Тимур Володимирович · The Inside Scoop</p>
+  </div>
+</footer>
+
+</body>
+</html>
